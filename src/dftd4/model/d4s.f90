@@ -386,7 +386,7 @@ subroutine weight_references(self, mol, cn, q, gwvec, gwdcn, gwdq)
    real(wp), intent(out), optional :: gwdq(:, :, :)
 
    integer :: iat, izp, iref, igw, jat, jzp
-   real(wp) :: norm, dnorm, gw, expw, expd, gwk, dgwk, wf, zi, gi, maxcn
+   real(wp) :: norm, dnorm, gw, expw, expd, gwk, dgwk, wf, zi, gi, maxcn, a, b, c, d
    
    if (present(gwdcn) .and. present(gwdq)) then
       gwvec(:, :, :) = 0.0_wp
@@ -454,7 +454,7 @@ subroutine weight_references(self, mol, cn, q, gwvec, gwdcn, gwdq)
       !$omp parallel do default(none) schedule(runtime) &
       !$omp shared(gwvec, mol, self, cn, q) &
       !$omp private(iat, izp, iref, igw, zi, gi, jat, jzp) &
-      !$omp private(norm, gw, expw, gwk, wf, maxcn)
+      !$omp private(norm, gw, expw, gwk, wf, maxcn, a, b, c, d)
       do iat = 1, mol%nat
          izp = mol%id(iat)
          zi = self%zeff(izp)
@@ -487,7 +487,8 @@ subroutine weight_references(self, mol, cn, q, gwvec, gwdcn, gwdq)
                      gwk = 0.0_wp
                   end if
                end if
-               gwvec(iref, iat, jat) = gwk * zeta(self%ga, gi, self%q(iref, izp)+zi, q(iat)+zi)
+               gwvec(iref, iat, jat) = gwk * new_zeta(a, b, c, d, self%q(iref, izp), q(iat))
+               ! * zeta(self%ga, gi, self%q(iref, izp)+zi, q(iat)+zi)
             end do
 
          end do 

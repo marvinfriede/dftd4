@@ -79,6 +79,7 @@ module dftd4_reference
    real(wp),dimension(23,17)    :: secaiw
 
    include 'reference.inc'
+   include 'dftd4_data_tanh_only_cat_10.inc'
 
 contains
 
@@ -281,6 +282,43 @@ pure subroutine set_refalpha_eeq_sym(alpha, ga, gc, sym)
 end subroutine set_refalpha_eeq_sym
 
 
+pure subroutine get_tanh_params(num, a, b, c, d)
+   !> Atomic number 
+   integer, intent(in) :: num
+   !> Parameters for the tanh interpolation
+   real(wp), intent(out) :: a
+   real(wp), intent(out) :: b
+   real(wp), intent(out) :: c
+   real(wp), intent(out) :: d
+   
+   a = tanh_params(1, num)
+   b = tanh_params(2, num)
+   c = tanh_params(3, num)
+   d = tanh_params(4, num)
+
+end subroutine
+
+!> charge scaling function
+elemental function new_zeta(a, b, c, d, qref, qmod)
+   !> Parameters from the tanh interpolation
+   real(wp), intent(in) :: a
+   real(wp), intent(in) :: b
+   real(wp), intent(in) :: c
+   real(wp), intent(in) :: d
+   !> Charge in the reference system
+   real(wp), intent(in) :: qref
+   !> Charge in the actual system
+   real(wp), intent(in) :: qmod
+   real(wp) :: new_zeta, zeta_mod, zeta_ref
+
+   intrinsic :: dtanh
+
+   zeta_mod = a + b * dtanh( c * (qmod) + d)
+   zeta_ref = a + b * dtanh( c * (qref) + d) 
+   new_zeta = zeta_mod/zeta_ref
+
+end function new_zeta
+
 !> Set the reference polarizibility for an atomic number
 pure subroutine set_refalpha_eeq_num(alpha, ga, gc, num)
 
@@ -298,7 +336,7 @@ pure subroutine set_refalpha_eeq_num(alpha, ga, gc, num)
 
    integer :: ref
    integer :: ir, is
-   real(wp) :: iz
+   real(wp) :: iz, a, b, c, d
    real(wp) :: aiw(23)
 
    alpha(:, :) = 0.0_wp
@@ -309,8 +347,14 @@ pure subroutine set_refalpha_eeq_num(alpha, ga, gc, num)
          if (abs(is) < 1e-12_wp) cycle
 
          iz = get_effective_charge(is)
+
+         ! Get parameters for the secondary element in the reference system 
+         call get_tanh_params(is, a, b, c, d)
+
          aiw = sscale(is)*secaiw(:, is) &
-            &    * zeta(ga, get_hardness(is)*gc, iz, clsh(ir, num)+iz)
+            &    * new_zeta(a, b, c, d, 0.0_wp, clsh(ir, num))
+            !&    * zeta(ga, get_hardness(is)*gc, iz, clsh(ir, num)+iz)
+
          alpha(:, ir) = max(ascale(ir, num)*(alphaiw(:, ir, num) &
             &            - hcount(ir, num)*aiw), 0.0_wp)
       end do
