@@ -20,7 +20,7 @@ module dftd4_model_utils
    use mctc_env, only : wp
    implicit none
    
-   public :: is_exceptional, weight_cn, zeta, dzeta, trapzd
+   public :: is_exceptional, weight_cn, zeta, dzeta, trapzd, new_zeta
 
 contains
 
@@ -57,6 +57,27 @@ elemental function zeta(a, c, qref, qmod)
    endif
 
 end function zeta
+
+!> charge scaling function
+elemental function new_zeta(a, b, c, d, qref, qmod)
+   !> Parameters from the tanh interpolation
+   real(wp), intent(in) :: a
+   real(wp), intent(in) :: b
+   real(wp), intent(in) :: c
+   real(wp), intent(in) :: d
+   !> Charge in the reference system
+   real(wp), intent(in) :: qref
+   !> Charge in the actual system
+   real(wp), intent(in) :: qmod
+   real(wp) :: new_zeta, zeta_mod, zeta_ref
+
+   intrinsic :: dtanh
+
+   zeta_mod = a + b * dtanh( c * (qmod) + d)
+   zeta_ref = a + b * dtanh( c * (qref) + d) 
+   new_zeta = zeta_mod/zeta_ref
+
+end function new_zeta
 
 !> derivative of charge scaling function w.r.t. charge
 elemental function dzeta(a, c, qref, qmod)
