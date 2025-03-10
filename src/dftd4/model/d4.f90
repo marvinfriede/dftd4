@@ -388,7 +388,7 @@ subroutine weight_references(self, mol, cn, q, gwvec, gwdcn, gwdq)
    !> derivative of the weighting function w.r.t. the charge scaling
    real(wp), intent(out), optional :: gwdq(:, :, :)
 
-   integer :: iat, izp, iref, igw
+   integer :: iat, izp, iref, igw, isp
    real(wp) :: norm, dnorm, gw, expw, expd, gwk, dgwk, wf, zi, gi, maxcn, a, b, c, d
 
    if (present(gwdcn) .and. present(gwdq)) then
@@ -397,7 +397,8 @@ subroutine weight_references(self, mol, cn, q, gwvec, gwdcn, gwdq)
       gwdq(:, :, :) = 0.0_wp
 
       !$omp parallel do default(none) schedule(runtime) &
-      !$omp shared(gwvec, gwdcn, gwdq, mol, self, cn, q) private(iat, izp, iref, &
+      !$omp shared(gwvec, gwdcn, gwdq, mol, self, cn, q) &
+      !$omp private(iat, isp, izp, iref, a, b, c, d, &
       !$omp& igw, norm, dnorm, gw, expw, expd, gwk, dgwk, wf, zi, gi, maxcn)
       do iat = 1, mol%nat
          izp = mol%id(iat)
@@ -449,11 +450,14 @@ subroutine weight_references(self, mol, cn, q, gwvec, gwdcn, gwdq)
 
       !$omp parallel do default(none) schedule(runtime) &
       !$omp shared(gwvec, mol, self, cn, q) &
-      !$omp private(iat, izp, iref, igw, norm, gw, expw, gwk, wf, zi, gi, maxcn, a, b, c, d)
+      !$omp private(iat, izp, isp, iref, igw, norm, gw, expw, gwk, wf, zi, gi, maxcn, a, b, c, d)
       do iat = 1, mol%nat
          izp = mol%id(iat)
+         isp = mol%num(izp)
          zi = self%zeff(izp)
          gi = self%eta(izp) * self%gc
+         call get_tanh_params(isp, a, b, c, d)
+
          norm = 0.0_wp
          do iref = 1, self%ref(izp)
             do igw = 1, self%ngw(iref, izp)
@@ -477,10 +481,7 @@ subroutine weight_references(self, mol, cn, q, gwvec, gwdcn, gwdq)
                   gwk = 0.0_wp
                end if
             end if
-            write(*, *)  new_zeta(a, b, c, d, self%q(iref, izp), q(iat))
             gwvec(iref, iat, 1) = gwk * new_zeta(a, b, c, d, self%q(iref, izp), q(iat))
-            ! 
-            ! * zeta(self%ga, gi, self%q(iref, izp)+zi, q(iat)+zi)
          end do
       end do
    end if

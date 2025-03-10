@@ -21,7 +21,7 @@ module dftd4_reference
    implicit none
    private
 
-   public :: get_nref, set_refcn, set_refgw
+   public :: get_nref, set_refcn, set_refgw, get_tanh_params
    public :: set_refq_eeq, set_refalpha_eeq, set_refq_gfn2, set_refalpha_gfn2
 
    interface get_nref
@@ -117,7 +117,7 @@ end function get_nref_num
 
 
 !> Set the reference coordination numbers for an element symbol
-pure subroutine set_refcn_sym(cn, sym)
+subroutine set_refcn_sym(cn, sym)
 
    !> Reference coordination number
    real(wp), intent(out) :: cn(:)
@@ -131,7 +131,7 @@ end subroutine set_refcn_sym
 
 
 !> Set the reference coordination numbers for an atomic number
-pure subroutine set_refcn_num(cn, num)
+subroutine set_refcn_num(cn, num)
 
    !> Reference coordination number
    real(wp), intent(out) :: cn(:)
@@ -151,7 +151,7 @@ end subroutine set_refcn_num
 
 
 !> Set the number of gaussian weights for an element symbol
-pure subroutine set_refgw_sym(ngw, sym)
+subroutine set_refgw_sym(ngw, sym)
 
    !> Number of gaussian weights
    integer, intent(out) :: ngw(:)
@@ -165,7 +165,7 @@ end subroutine set_refgw_sym
 
 
 !> Set the number of gaussian weights for an atomic number
-pure subroutine set_refgw_num(ngw, num)
+subroutine set_refgw_num(ngw, num)
 
    !> Number of gaussian weights
    integer, intent(out) :: ngw(:)
@@ -195,7 +195,7 @@ end subroutine set_refgw_num
 
 
 !> Set the reference partial charges for an element symbol
-pure subroutine set_refq_eeq_sym(q, sym)
+subroutine set_refq_eeq_sym(q, sym)
 
    !> Reference partial charge
    real(wp), intent(out) :: q(:)
@@ -209,7 +209,7 @@ end subroutine set_refq_eeq_sym
 
 
 !> Set the reference partial charges for an atomic number
-pure subroutine set_refq_eeq_num(q, num)
+subroutine set_refq_eeq_num(q, num)
 
    !> Reference partial charge
    real(wp), intent(out) :: q(:)
@@ -229,7 +229,7 @@ end subroutine set_refq_eeq_num
 
 
 !> Set the reference partial charges for an element symbol
-pure subroutine set_refq_gfn2_sym(q, sym)
+subroutine set_refq_gfn2_sym(q, sym)
 
    !> Reference partial charge
    real(wp), intent(out) :: q(:)
@@ -243,7 +243,7 @@ end subroutine set_refq_gfn2_sym
 
 
 !> Set the reference partial charges for an atomic number
-pure subroutine set_refq_gfn2_num(q, num)
+subroutine set_refq_gfn2_num(q, num)
 
    !> Reference partial charge
    real(wp), intent(out) :: q(:)
@@ -263,7 +263,7 @@ end subroutine set_refq_gfn2_num
 
 
 !> Set the reference polarizibility for an element symbol
-pure subroutine set_refalpha_eeq_sym(alpha, ga, gc, sym)
+subroutine set_refalpha_eeq_sym(alpha, ga, gc, sym)
 
    !> Reference polarizibility
    real(wp), intent(out) :: alpha(:, :)
@@ -282,7 +282,7 @@ pure subroutine set_refalpha_eeq_sym(alpha, ga, gc, sym)
 end subroutine set_refalpha_eeq_sym
 
 
-pure subroutine get_tanh_params(num, a, b, c, d)
+subroutine get_tanh_params(num, a, b, c, d)
    !> Atomic number 
    integer, intent(in) :: num
    !> Parameters for the tanh interpolation
@@ -320,7 +320,7 @@ elemental function new_zeta(a, b, c, d, qref, qmod)
 end function new_zeta
 
 !> Set the reference polarizibility for an atomic number
-pure subroutine set_refalpha_eeq_num(alpha, ga, gc, num)
+subroutine set_refalpha_eeq_num(alpha, ga, gc, num)
 
    !> Reference polarizibility
    real(wp), intent(out) :: alpha(:, :)
@@ -355,6 +355,8 @@ pure subroutine set_refalpha_eeq_num(alpha, ga, gc, num)
             &    * new_zeta(a, b, c, d, 0.0_wp, clsh(ir, num))
             !&    * zeta(ga, get_hardness(is)*gc, iz, clsh(ir, num)+iz)
 
+         !write (*, *) num, ir, new_zeta(a, b, c, d, 0.0_wp, clsh(ir, num))
+
          alpha(:, ir) = max(ascale(ir, num)*(alphaiw(:, ir, num) &
             &            - hcount(ir, num)*aiw), 0.0_wp)
       end do
@@ -364,7 +366,7 @@ end subroutine set_refalpha_eeq_num
 
 
 !> Set the reference polarizibility for an element symbol
-pure subroutine set_refalpha_gfn2_sym(alpha, ga, gc, sym)
+subroutine set_refalpha_gfn2_sym(alpha, ga, gc, sym)
 
    !> Reference polarizibility
    real(wp), intent(out) :: alpha(:, :)
@@ -384,7 +386,7 @@ end subroutine set_refalpha_gfn2_sym
 
 
 !> Set the reference polarizibility for an atomic number
-pure subroutine set_refalpha_gfn2_num(alpha, ga, gc, num)
+subroutine set_refalpha_gfn2_num(alpha, ga, gc, num)
 
    !> Reference polarizibility
    real(wp), intent(out) :: alpha(:, :)
